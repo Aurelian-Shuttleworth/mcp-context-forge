@@ -197,18 +197,28 @@ spec:
 {{- toYaml .Values.mcpContextForge.resources | nindent 12 }}
 
           {{- /* Plugins enabled need the plugins configuration */}}
-          {{- if .Values.mcpContextForge.pluginConfig.enabled }}
+          {{- if or .Values.mcpContextForge.pluginConfig.enabled .Values.mcpContextForge.extraVolumeMounts }}
           volumeMounts:
+            {{- if .Values.mcpContextForge.pluginConfig.enabled }}
             - name: plugin-config-volume
               mountPath: /app/{{ .Values.mcpContextForge.config.PLUGIN_CONFIG_FILE }}
               subPath: config.yaml
+            {{- end }}
+            {{- if .Values.mcpContextForge.extraVolumeMounts }}
+            {{- toYaml .Values.mcpContextForge.extraVolumeMounts | nindent 12 }}
+            {{- end }}
           {{- end }}
-{{- if .Values.mcpContextForge.pluginConfig.enabled }}
+{{- if or .Values.mcpContextForge.pluginConfig.enabled .Values.mcpContextForge.extraVolumes }}
       volumes:
+      {{- if .Values.mcpContextForge.pluginConfig.enabled }}
       - name: plugin-config-volume
         configMap:
           name: {{ include "mcp-stack.fullname" . }}-gateway-plugins
           items:
           - key: config.yaml
             path: config.yaml
-{{- end }}
+      {{- end }}
+      {{- if .Values.mcpContextForge.extraVolumes }}
+      {{- toYaml .Values.mcpContextForge.extraVolumes | nindent 6 }}
+      {{- end }}
+      {{- end }}
